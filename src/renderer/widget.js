@@ -16,6 +16,8 @@ let currentDay = ymd(new Date());
 let idleLine = null;
 let idleTimer = null;
 let awakeTimer = null;
+let announcedVersion = null;
+let updateHidden = false;
 
 const keyOf = (target) => `${target.date}/${target.code}`;
 
@@ -132,6 +134,26 @@ function renderNutrition(meal) {
   }));
 }
 
+function renderUpdate() {
+  const { update } = state;
+  $('update').hidden = !update || updateHidden;
+  if (!update) return;
+  $('updateTitle').textContent = `새 버전 v${update.version} 준비 완료`;
+  $('updateNotes').textContent = update.notes;
+  $('updateNotes').hidden = !update.notes;
+}
+
+// 새 버전을 다 받았으면 캐릭터가 한 번 알려준다.
+function announceUpdate() {
+  const { update } = state;
+  if (!update || update.version === announcedVersion) return;
+  announcedVersion = update.version;
+  updateHidden = false;
+  $('bubble').hidden = false;
+  wake();
+  say(pickLine(state.settings.tone, 'updateReady', Math.random(), { version: `v${update.version}` }));
+}
+
 function renderStatus() {
   const status = $('status');
   const text = state.error && state.updatedAt
@@ -178,6 +200,7 @@ function render() {
   renderDishes(dishes);
   renderNutrition(meal);
   renderStatus();
+  renderUpdate();
 
   if (!hasSchool) {
     $('speech').textContent = pickLine(settings.tone, 'noSchool', 'setup');
@@ -281,6 +304,11 @@ function setupControls() {
   $('nextDay').addEventListener('click', () => move(1));
   $('closeBubble').addEventListener('click', () => { $('bubble').hidden = true; });
   $('kcal').addEventListener('click', () => { $('nutrition').hidden = !$('nutrition').hidden; });
+  $('updateNow').addEventListener('click', () => window.api.installUpdate());
+  $('updateLater').addEventListener('click', () => {
+    updateHidden = true;
+    render();
+  });
 }
 
 function tick() {
@@ -305,6 +333,7 @@ async function init() {
     state = next;
     followDefault();
     render();
+    announceUpdate();
   });
   window.api.onCharactersChanged((next) => {
     images = next;

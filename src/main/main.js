@@ -1,5 +1,5 @@
 const {
-  app, BrowserWindow, Tray, Menu, ipcMain, dialog, nativeImage, screen, net, powerMonitor, shell,
+  app, BrowserWindow, Tray, Menu, ipcMain, dialog, nativeImage, screen, net, powerMonitor, Notification,
 } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -15,8 +15,6 @@ const SCHEDULE_DAYS = 14;
 const KEEP_PAST_DAYS = 7;
 const REFRESH_INTERVAL = 6 * 60 * 60 * 1000;
 const APP_ID = 'app.geupsikalimi.widget';
-// 화면에서 주소를 받지 않고 이 주소만 연다.
-const FEEDBACK_URL = 'https://www.instagram.com/gajae_ssam/';
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MOODS = ['default', 'happy', 'sad', 'sleepy'];
 const IMAGE_TYPES = {
@@ -30,7 +28,7 @@ let tray = null;
 let dragOrigin = null;
 let refreshing = null;
 let lastError = null;
-let updateReady = false;
+let update = null; // 내려받기를 마친 새 버전 { version, notes }
 
 const charactersDir = () => path.join(app.getPath('userData'), 'characters');
 const schoolKey = (school) => (school ? `${school.region}-${school.code}` : null);
@@ -49,6 +47,7 @@ function currentState() {
     loading: Boolean(refreshing),
     isPackaged: app.isPackaged,
     version: APP_VERSION,
+    update,
   };
 }
 
@@ -214,14 +213,47 @@ function openSettings() {
   settingsWindow.loadFile(path.join(__dirname, '..', 'renderer', 'settings.html'));
 }
 
+// GitHub 릴리스 메모(HTML)를 위젯에 보여줄 짧은 글로 바꾼다.
+function plainNotes(notes) {
+  const raw = Array.isArray(notes) ? notes.map((item) => item.note || '').join('\n') : String(notes || '');
+  return raw
+    .replace(/<\/?(p|li|br|h\d|ul|ol)[^>]*>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .split('\n')
+    .map((line) => line.replace(/^[\s*•-]+/, '').trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(' · ')
+    .slice(0, 120);
+}
+
+function notifyUpdate() {
+  if (!Notification.isSupported()) return;
+  const notice = new Notification({
+    title: '급식알리미 업데이트',
+    body: `새 버전 v${update.version} 준비 완료! 위젯에서 바로 설치할 수 있어요.`,
+  });
+  notice.on('click', () => {
+    if (!widget) return;
+    widget.showInactive();
+    widget.moveTop();
+  });
+  notice.show();
+}
+
 function setupAutoUpdate() {
   if (!app.isPackaged) return;
   const { autoUpdater } = require('electron-updater');
-  const check = () => autoUpdater.checkForUpdatesAndNotify().catch((error) => {
+  const check = () => autoUpdater.checkForUpdates().catch((error) => {
     console.error('업데이트 확인 실패:', error);
   });
   autoUpdater.on('error', (error) => console.error('업데이트 오류:', error));
-  autoUpdater.on('update-downloaded', () => { updateReady = true; });
+  autoUpdater.on('update-downloaded', (info) => {
+    update = { version: info.version, notes: plainNotes(info.releaseNotes) };
+    broadcast('state:changed', currentState());
+    notifyUpdate();
+  });
   check();
   setInterval(check, REFRESH_INTERVAL);
 }
@@ -232,7 +264,7 @@ function installUpdate() {
 
 function menuTemplate() {
   return [
-    ...(updateReady ? [{ label: '업데이트 설치하고 다시 시작', click: installUpdate }, { type: 'separator' }] : []),
+    ...(update ? [{ label: '업데이트 설치하고 다시 시작', click: installUpdate }, { type: 'separator' }] : []),
     { label: widget && widget.isVisible() ? '위젯 숨기기' : '위젯 보이기', click: toggleWidget },
     { label: '식단 새로고침', click: () => refreshMeals() },
     { label: '설정', click: openSettings },
@@ -333,7 +365,9 @@ function registerIpc() {
   });
 
   ipcMain.on('settings:open', openSettings);
-  ipcMain.on('feedback:open', () => shell.openExternal(FEEDBACK_URL));
+  ipcMain.on('update:install', () => {
+    if (update) installUpdate();
+  });
   ipcMain.on('widget:menu', () => {
     if (widget) Menu.buildFromTemplate(menuTemplate()).popup({ window: widget });
   });

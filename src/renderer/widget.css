@@ -314,3 +314,34 @@ button:focus-visible {
   30% { transform: translateY(-14px) scale(0.95, 1.06); }
   65% { transform: translateY(0) scale(1.07, 0.92); }
 }
+
+/* 새 버전을 다 받았을 때 말풍선 위쪽에 나오는 안내 */
+.update {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0 2px;
+  padding: 7px 6px 7px 11px;
+  background: var(--mint-soft);
+  border-radius: 14px;
+  color: var(--mint);
+}
+
+.update[hidden] { display: none; }
+.update-text { flex: 1; min-width: 0; word-break: keep-all; }
+.update-text strong { display: block; font-size: 13.5px; }
+.update-text p { margin-top: 1px; color: var(--ink); font-size: 12px; overflow-wrap: anywhere; }
+.update-text p[hidden] { display: none; }
+
+.update-now {
+  flex: none;
+  padding: 4px 10px;
+  background: var(--mint);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.update-now:hover { filter: brightness(1.08); }
+.update-later { color: var(--mint); }
