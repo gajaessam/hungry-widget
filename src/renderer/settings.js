@@ -170,6 +170,8 @@ async function init() {
   $('tone').append(...Object.entries(tones).map(([value, label]) => option(value, label)));
   $('schoolForm').addEventListener('submit', searchSchools);
 
+  $('appVersion').textContent = `급식알리미 v${state.version}`;
+  $('feedback').addEventListener('click', () => window.api.openFeedback());
   renderSchool();
   renderGrades();
   $('grade').addEventListener('change', () => save({ grade: Number($('grade').value) }));

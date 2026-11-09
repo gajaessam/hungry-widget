@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('api', {
   pickCharacter: (mood) => ipcRenderer.invoke('characters:pick', mood),
   removeCharacter: (mood) => ipcRenderer.invoke('characters:remove', mood),
   openSettings: () => ipcRenderer.send('settings:open'),
+  openFeedback: () => ipcRenderer.send('feedback:open'),
   openWidgetMenu: () => ipcRenderer.send('widget:menu'),
   setIgnoreMouse: (ignore) => ipcRenderer.send('widget:ignore-mouse', ignore),
   setWidgetHeight: (height) => ipcRenderer.send('widget:height', height),

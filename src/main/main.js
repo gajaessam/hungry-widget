@@ -1,11 +1,12 @@
 const {
-  app, BrowserWindow, Tray, Menu, ipcMain, dialog, nativeImage, screen, net, powerMonitor,
+  app, BrowserWindow, Tray, Menu, ipcMain, dialog, nativeImage, screen, net, powerMonitor, shell,
 } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { createStore } = require('./store.js');
 const { createNeisClient } = require('./neis.js');
 const { ymd, addDays } = require('../shared/logic.js');
+const { version: APP_VERSION } = require('../../package.json');
 
 const WIDGET_WIDTH = 320;
 const WIDGET_MIN_HEIGHT = 100;
@@ -14,6 +15,8 @@ const SCHEDULE_DAYS = 14;
 const KEEP_PAST_DAYS = 7;
 const REFRESH_INTERVAL = 6 * 60 * 60 * 1000;
 const APP_ID = 'app.geupsikalimi.widget';
+// 화면에서 주소를 받지 않고 이 주소만 연다.
+const FEEDBACK_URL = 'https://www.instagram.com/gajae_ssam/';
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MOODS = ['default', 'happy', 'sad', 'sleepy'];
 const IMAGE_TYPES = {
@@ -45,6 +48,7 @@ function currentState() {
     error: lastError,
     loading: Boolean(refreshing),
     isPackaged: app.isPackaged,
+    version: APP_VERSION,
   };
 }
 
@@ -329,6 +333,7 @@ function registerIpc() {
   });
 
   ipcMain.on('settings:open', openSettings);
+  ipcMain.on('feedback:open', () => shell.openExternal(FEEDBACK_URL));
   ipcMain.on('widget:menu', () => {
     if (widget) Menu.buildFromTemplate(menuTemplate()).popup({ window: widget });
   });
