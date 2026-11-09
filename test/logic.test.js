@@ -210,13 +210,14 @@ test('대사는 상황에 맞는 빈칸만 쓰고 메뉴 뒤에 조사를 바로
     noMealEvent: ['when', 'event'],
     markFavorite: ['menu'],
     markDisliked: ['menu'],
+    updateReady: ['version'],
   };
   for (const [tone, set] of Object.entries(LINES)) {
     for (const [situation, keys] of Object.entries(allowed)) {
       for (const line of set[situation]) {
         const used = [...line.matchAll(/\{(\w+)\}/g)].map((match) => match[1]);
         assert.ok(used.every((key) => keys.includes(key)), `${tone}: ${line}`);
-        assert.doesNotMatch(line, /\{(menu|event)\}(은|는|이|가|을|를|야|이야|라|랑|와|과)/, `${tone}: ${line}`);
+        assert.doesNotMatch(line, /\{(menu|event|version)\}(은|는|이|가|을|를|야|이야|라|랑|와|과)/, `${tone}: ${line}`);
       }
     }
     for (const situation of ['idle', 'offline', 'loadFailed', 'noSchool']) {

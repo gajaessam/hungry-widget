@@ -24,6 +24,7 @@ const IMAGE_TYPES = {
 let store;
 let widget = null;
 let settingsWindow = null;
+let helpWindow = null;
 let tray = null;
 let dragOrigin = null;
 let refreshing = null;
@@ -262,12 +263,36 @@ function installUpdate() {
   require('electron-updater').autoUpdater.quitAndInstall(true, true);
 }
 
+function openHelp() {
+  if (helpWindow) {
+    helpWindow.show();
+    helpWindow.focus();
+    return;
+  }
+  helpWindow = new BrowserWindow({
+    width: 560,
+    height: 760,
+    minWidth: 440,
+    minHeight: 480,
+    title: '급식알리미 사용 설명서',
+    icon: path.join(__dirname, '..', '..', 'assets', 'icon.png'),
+    autoHideMenuBar: true,
+    backgroundColor: '#fff8ea',
+    webPreferences,
+  });
+  helpWindow.removeMenu();
+  lockNavigation(helpWindow);
+  helpWindow.on('closed', () => { helpWindow = null; });
+  helpWindow.loadFile(path.join(__dirname, '..', 'renderer', 'help.html'));
+}
+
 function menuTemplate() {
   return [
     ...(update ? [{ label: '업데이트 설치하고 다시 시작', click: installUpdate }, { type: 'separator' }] : []),
     { label: widget && widget.isVisible() ? '위젯 숨기기' : '위젯 보이기', click: toggleWidget },
     { label: '식단 새로고침', click: () => refreshMeals() },
     { label: '설정', click: openSettings },
+    { label: '사용 설명서', click: openHelp },
     { type: 'separator' },
     { label: '종료', click: () => app.quit() },
   ];
@@ -365,6 +390,7 @@ function registerIpc() {
   });
 
   ipcMain.on('settings:open', openSettings);
+  ipcMain.on('help:open', openHelp);
   ipcMain.on('update:install', () => {
     if (update) installUpdate();
   });

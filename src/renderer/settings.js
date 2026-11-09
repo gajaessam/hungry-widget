@@ -171,6 +171,7 @@ async function init() {
   $('schoolForm').addEventListener('submit', searchSchools);
 
   $('appVersion').textContent = `급식알리미 v${state.version}`;
+  $('openHelp').addEventListener('click', () => window.api.openHelp());
   renderSchool();
   renderGrades();
   $('grade').addEventListener('change', () => save({ grade: Number($('grade').value) }));

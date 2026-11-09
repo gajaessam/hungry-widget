@@ -4,7 +4,7 @@ const {
 
 const VIEW_DAYS = 7;
 const CLICK_DISTANCE = 4;
-const IDLE_LINE_MS = 6000;
+const IDLE_LINE_MS = 4000;
 const AWAKE_MS = 8000;
 const $ = (id) => document.getElementById(id);
 
@@ -43,8 +43,15 @@ function selectDate(date) {
   render();
 }
 
+// 다른 날짜나 끼니를 보면 그 식단 안내가 바로 보이도록 클릭 대사를 지운다.
 function closeNutrition() {
   $('nutrition').hidden = true;
+  clearSaying();
+}
+
+function clearSaying() {
+  idleLine = null;
+  clearTimeout(idleTimer);
 }
 
 function renderChips(meals) {

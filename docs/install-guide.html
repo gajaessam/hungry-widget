@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>급식알리미 설치 안내</title>
+  <style>
+    @page { size: A4; margin: 16mm 15mm; }
+    :root {
+      --ink: #3b2f2a;
+      --muted: #7a6b63;
+      --line: #e3d6bf;
+      --cream: #fff8ea;
+      --paper: #fffdf6;
+      --accent: #c8452f;
+      --blue: #1f5fa8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font: 10.5pt/1.55 "Pretendard", "Malgun Gothic", sans-serif;
+      word-break: keep-all;
+    }
+    h1 { margin: 0 0 2mm; font-size: 20pt; }
+    h2 { margin: 0 0 3mm; font-size: 13pt; }
+    .lead { margin: 0 0 6mm; color: var(--muted); }
+    .card {
+      margin-bottom: 5mm;
+      padding: 5mm 6mm;
+      background: var(--paper);
+      border: 1.2px solid var(--line);
+      border-radius: 4mm;
+      break-inside: avoid;
+    }
+    .steps { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+    .steps > li { position: relative; margin: 0 0 4mm; padding-left: 10mm; counter-increment: step; }
+    .steps > li:last-child { margin-bottom: 0; }
+    .steps > li::before {
+      content: counter(step);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 6.5mm;
+      height: 6.5mm;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #fff;
+      font-weight: 700;
+      line-height: 6.5mm;
+      text-align: center;
+    }
+    .key { padding: 0 1.5mm; background: #fde9e3; border-radius: 1.5mm; color: var(--accent); font-weight: 700; }
+    .note { margin: 2mm 0 0; color: var(--muted); font-size: 9.5pt; }
+    .shots { display: flex; gap: 4mm; margin-top: 3mm; }
+    .shot { flex: 1; margin: 0; }
+    .shot img { display: block; width: 100%; border: 1px solid var(--line); border-radius: 2mm; }
+    .shot figcaption { margin-top: 1.5mm; color: var(--muted); font-size: 9pt; text-align: center; }
+
+    /* 실제 캡처가 없을 때 쓰는 예시 그림. 윈도우 화면을 흉내 내지 않고 순서만 보여준다. */
+    .sketch {
+      position: relative;
+      height: 42mm;
+      padding: 4mm;
+      background: var(--blue);
+      border-radius: 2mm;
+      color: #fff;
+      font-size: 9pt;
+    }
+    .sketch strong { display: block; margin-bottom: 2mm; font-size: 11pt; }
+    .sketch .fake-line { height: 2mm; margin: 1.5mm 0; background: rgba(255, 255, 255, 0.35); border-radius: 1mm; }
+    .sketch .fake-line.short { width: 60%; }
+    .sketch .target {
+      display: inline-block;
+      margin-top: 2mm;
+      padding: 0.5mm 2mm;
+      border: 0.6mm solid #ffd34d;
+      border-radius: 1.5mm;
+      font-weight: 700;
+    }
+    .sketch .button {
+      position: absolute;
+      right: 4mm;
+      bottom: 4mm;
+      padding: 1mm 4mm;
+      background: rgba(255, 255, 255, 0.2);
+      border: 0.4mm solid rgba(255, 255, 255, 0.7);
+      border-radius: 1mm;
+    }
+    .sketch .button.target { border-color: #ffd34d; background: rgba(255, 211, 77, 0.25); }
+    .sketch .label {
+      position: absolute;
+      top: 3mm;
+      right: 3mm;
+      padding: 0.3mm 1.5mm;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 1mm;
+      font-size: 7.5pt;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm 6mm; }
+    .grid div { display: flex; gap: 2mm; }
+    .grid b { flex: none; width: 27mm; }
+    ul { margin: 0; padding-left: 5mm; }
+    li { margin: 1mm 0; }
+    .warn { background: #fff1ec; border-color: #f3cfc4; }
+    footer { margin-top: 4mm; color: var(--muted); font-size: 9pt; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>급식알리미 설치 안내</h1>
+  <p class="lead">내가 고른 캐릭터가 말풍선으로 오늘 급식을 알려주는 Windows 위젯이에요.</p>
+
+  <section class="card">
+    <h2>설치하기</h2>
+    <ol class="steps">
+      <li>이 폴더의 <b>geupsik-alimi-setup-버전.exe</b>를 더블클릭해요. zip 안에서 바로 누르지 말고, <b>압축을 먼저 풀어</b> 주세요.</li>
+      <li>
+        파란색 <b>Windows의 PC 보호</b> 창이 뜨면 <span class="key">추가 정보</span>를 누른 뒤 <span class="key">실행</span>을 눌러요.
+        <p class="note">개인이 만든 무료 앱이라 코드 서명 인증서가 없어서 뜨는 안내예요. 앱은 개인정보를 수집하지 않아요.</p>
+        <div class="shots">
+          <!--SMARTSCREEN_SHOTS-->
+        </div>
+      </li>
+      <li>설치가 끝나면 설정 창이 열려요. <b>학교</b>를 검색해 고르고 <b>학년</b>을 선택하면 바로 급식이 나와요.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>기본 사용법</h2>
+    <div class="grid">
+      <div><b>캐릭터 클릭</b><span>말 걸기</span></div>
+      <div><b>캐릭터 끌기</b><span>위치 옮기기</span></div>
+      <div><b>캐릭터 우클릭</b><span>설정, 사용 설명서, 종료</span></div>
+      <div><b>말풍선 ‹ ›</b><span>일주일 치 식단 보기</span></div>
+      <div><b>메뉴 위 ♥ / ✕</b><span>좋아하는·싫어하는 메뉴</span></div>
+      <div><b>트레이 아이콘</b><span>위젯 숨기기·보이기</span></div>
+    </div>
+    <p class="note">캐릭터 이미지, 말투, 알레르기, 크기는 설정에서 바꿀 수 있어요. 자세한 내용은 캐릭터 우클릭 → <b>사용 설명서</b>에서 볼 수 있어요.</p>
+  </section>
+
+  <section class="card warn">
+    <h2>꼭 알아 두세요</h2>
+    <ul>
+      <li><b>Windows 전용</b>이에요. Mac과 휴대폰에서는 사용할 수 없어요.</li>
+      <li>한 번 설치하면 <b>업데이트는 자동</b>이에요. 새 버전이 오면 말풍선으로 알려줘요.</li>
+      <li>캐릭터 이미지는 PC 안에만 저장돼요. <b>개인적으로 사용할 수 있는 이미지</b>만 넣어 주세요.</li>
+      <li>알레르기 경고는 학교가 올린 정보를 기준으로 해요. 심한 알레르기가 있다면 영양 선생님께 꼭 확인해 주세요.</li>
+    </ul>
+  </section>
+
+  <footer>급식 정보 출처: 나이스 교육정보 개방 포털 · 개선·수정 의견: 인스타그램 @gajae_ssam</footer>
+</body>
+</html>

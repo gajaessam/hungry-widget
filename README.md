@@ -2,7 +2,16 @@
 
 내가 고른 캐릭터가 말풍선으로 오늘 급식을 알려주는 윈도우 PC 위젯입니다.
 
-## 실행
+## 설치 방법
+
+1. [최신 릴리스](https://github.com/gajaessam/hungry-widget/releases/latest)의 **Assets**에서 `geupsik-alimi-setup-버전.exe`를 내려받습니다. 다른 파일은 받지 않아도 됩니다.
+2. 내려받은 파일을 실행합니다.
+3. 파란색 **Windows의 PC 보호** 창이 뜨면 **추가 정보**를 누른 뒤 **실행**을 누릅니다.
+4. 설치가 끝나면 설정 창에서 학교와 학년을 고릅니다.
+
+파란 창은 개인이 만든 무료 앱이라 코드 서명 인증서가 없어서 나타나는 안내입니다. 앱은 고른 학교의 급식과 학사일정만 나이스에서 받아오며 개인정보를 수집하지 않습니다. Windows 전용이며 Mac과 휴대폰에서는 사용할 수 없습니다.
+
+## 개발 실행
 
 ```bash
 npm install
@@ -22,7 +31,7 @@ npm run dist
 
 - 캐릭터 클릭: 말 걸기
 - 캐릭터 드래그: 위치 옮기기
-- 캐릭터 우클릭 또는 트레이 아이콘 우클릭: 메뉴 열기
+- 캐릭터 우클릭 또는 트레이 아이콘 우클릭: 메뉴 열기 (설정, 사용 설명서 포함)
 - 트레이 아이콘 클릭: 위젯 숨기기와 보이기
 - 말풍선의 `‹ ›`: 일주일 치 식단 넘겨보기
 - 메뉴에 마우스를 올린 뒤 ♥ 또는 ✕: 좋아하는 메뉴, 싫어하는 메뉴로 등록
@@ -45,3 +54,13 @@ npx electron-builder --win nsis --publish always --config.directories.output=C:/
 ```
 
 `--prepackaged`로 나눠서 빌드하면 자동 업데이트 설정 파일(`app-update.yml`)이 빠지므로 쓰지 마세요.
+
+## 공유용 zip 만들기
+
+설치 파일을 빌드해 `dist\버전` 폴더에 넣은 뒤 실행하면, 설치 안내 PDF와 설치 파일을 묶은 `dist\버전\geupsik-alimi-버전.zip`이 만들어집니다.
+
+```bash
+npm.cmd run share
+```
+
+설치 안내는 `docs/install-guide.html`을 고치면 됩니다. Windows의 PC 보호 창을 캡처해 `docs/images/smartscreen-1.png`(추가 정보 누르기 전), `docs/images/smartscreen-2.png`(실행 버튼이 보이는 화면)로 저장하면 예시 그림 대신 실제 캡처가 들어갑니다.

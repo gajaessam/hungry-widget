@@ -142,3 +142,14 @@ button.primary { background: var(--ink); border-color: var(--ink); color: var(--
 }
 
 .about p { margin: 2px 0; }
+
+.page-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.page-head h1 { margin: 0; }
+.page-head button { flex: none; font-size: 13px; }
