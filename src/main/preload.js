@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   removeCharacter: (mood) => ipcRenderer.invoke('characters:remove', mood),
   openSettings: () => ipcRenderer.send('settings:open'),
   openHelp: () => ipcRenderer.send('help:open'),
+  checkUpdate: () => ipcRenderer.send('update:check'),
   installUpdate: () => ipcRenderer.send('update:install'),
   openWidgetMenu: () => ipcRenderer.send('widget:menu'),
   setIgnoreMouse: (ignore) => ipcRenderer.send('widget:ignore-mouse', ignore),
@@ -18,5 +19,6 @@ contextBridge.exposeInMainWorld('api', {
   dragMove: (dx, dy) => ipcRenderer.send('widget:drag-move', dx, dy),
   dragEnd: () => ipcRenderer.send('widget:drag-end'),
   onStateChanged: (listener) => ipcRenderer.on('state:changed', (_event, state) => listener(state)),
+  onHello: (listener) => ipcRenderer.on('widget:hello', () => listener()),
   onCharactersChanged: (listener) => ipcRenderer.on('characters:changed', (_event, images) => listener(images)),
 });

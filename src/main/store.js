@@ -44,6 +44,7 @@ function sanitize(patch) {
   if (typeof patch.autoStart === 'boolean') clean.autoStart = patch.autoStart;
   if (typeof patch.opacity === 'number') clean.opacity = Math.min(1, Math.max(0.4, patch.opacity));
   if (typeof patch.scale === 'number') clean.scale = Math.min(1.5, Math.max(0.7, patch.scale));
+  if (typeof patch.announcedUpdate === 'string') clean.announcedUpdate = patch.announcedUpdate.slice(0, 20);
   if (patch.position && Number.isFinite(patch.position.x) && Number.isFinite(patch.position.y)) {
     clean.position = { x: Math.round(patch.position.x), y: Math.round(patch.position.y) };
   }

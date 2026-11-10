@@ -25,11 +25,15 @@ let store;
 let widget = null;
 let settingsWindow = null;
 let helpWindow = null;
+let updateWindow = null;
 let tray = null;
 let dragOrigin = null;
 let refreshing = null;
 let lastError = null;
 let update = null; // 내려받기를 마친 새 버전 { version, notes }
+let updater = null;
+// 업데이트 진행 상태. state: idle, checking, downloading, latest, ready, error, dev(개발 실행)
+let updateStatus = { state: app.isPackaged ? 'idle' : 'dev' };
 
 const charactersDir = () => path.join(app.getPath('userData'), 'characters');
 const schoolKey = (school) => (school ? `${school.region}-${school.code}` : null);
@@ -49,11 +53,12 @@ function currentState() {
     isPackaged: app.isPackaged,
     version: APP_VERSION,
     update,
+    updateStatus,
   };
 }
 
 function broadcast(channel, payload) {
-  for (const win of [widget, settingsWindow]) {
+  for (const win of [widget, settingsWindow, updateWindow]) {
     if (win && !win.isDestroyed()) win.webContents.send(channel, payload);
   }
 }
@@ -214,20 +219,42 @@ function openSettings() {
   settingsWindow.loadFile(path.join(__dirname, '..', 'renderer', 'settings.html'));
 }
 
-// GitHub 릴리스 메모(HTML)를 위젯에 보여줄 짧은 글로 바꾼다.
-function plainNotes(notes) {
+// 릴리스 메모(HTML 또는 마크다운)를 줄 단위의 짧은 글로 바꾼다.
+function noteLines(notes, max) {
   const raw = Array.isArray(notes) ? notes.map((item) => item.note || '').join('\n') : String(notes || '');
   return raw
     .replace(/<\/?(p|li|br|h\d|ul|ol)[^>]*>/gi, '\n')
     .replace(/<[^>]+>/g, '')
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
     .split('\n')
-    .map((line) => line.replace(/^[\s*•-]+/, '').trim())
+    .map((line) => line.replace(/^[\s*•#-]+/, '').replace(/\*\*/g, '').trim())
     .filter(Boolean)
-    .slice(0, 3)
-    .join(' · ')
-    .slice(0, 120);
+    .slice(0, max);
 }
+
+// 위젯 말풍선에 보여줄 한 줄 요약
+function plainNotes(notes) {
+  return noteLines(notes, 3).join(' · ').slice(0, 120);
+}
+
+function setUpdateStatus(next) {
+  updateStatus = { ...next, at: Date.now() };
+  broadcast('state:changed', currentState());
+}
+
+function checkUpdate() {
+  if (!updater) {
+    setUpdateStatus({ state: 'dev' });
+    return;
+  }
+  if (['checking', 'downloading', 'ready'].includes(updateStatus.state)) return;
+  updater.checkForUpdates().catch((error) => {
+    console.error('업데이트 확인 실패:', error);
+    setUpdateStatus({ state: 'error' });
+  });
+}
+
+
 
 function notifyUpdate() {
   if (!Notification.isSupported()) return;
@@ -246,17 +273,34 @@ function notifyUpdate() {
 function setupAutoUpdate() {
   if (!app.isPackaged) return;
   const { autoUpdater } = require('electron-updater');
-  const check = () => autoUpdater.checkForUpdates().catch((error) => {
-    console.error('업데이트 확인 실패:', error);
+  updater = autoUpdater;
+  autoUpdater.on('checking-for-update', () => {
+    if (updateStatus.state !== 'ready') setUpdateStatus({ state: 'checking' });
   });
-  autoUpdater.on('error', (error) => console.error('업데이트 오류:', error));
+  autoUpdater.on('update-available', (info) => {
+    if (updateStatus.state !== 'ready') setUpdateStatus({ state: 'downloading', version: info.version, percent: 0 });
+  });
+  autoUpdater.on('update-not-available', () => setUpdateStatus({ state: 'latest' }));
+  autoUpdater.on('download-progress', (progress) => {
+    const percent = Math.floor(progress.percent);
+    if (updateStatus.state === 'downloading' && percent !== updateStatus.percent) {
+      setUpdateStatus({ ...updateStatus, percent });
+    }
+  });
+  autoUpdater.on('error', (error) => {
+    console.error('업데이트 오류:', error);
+    if (updateStatus.state !== 'ready') setUpdateStatus({ state: 'error' });
+  });
   autoUpdater.on('update-downloaded', (info) => {
-    update = { version: info.version, notes: plainNotes(info.releaseNotes) };
-    broadcast('state:changed', currentState());
-    notifyUpdate();
+    // 같은 버전은 앱을 다시 켜도 한 번만 알린다. 그 뒤에는 종료할 때 조용히 설치된다.
+    const isNew = store.getSettings().announcedUpdate !== info.version;
+    if (isNew) store.updateSettings({ announcedUpdate: info.version });
+    update = { version: info.version, notes: plainNotes(info.releaseNotes), announce: isNew || Boolean(update && update.announce) };
+    setUpdateStatus({ state: 'ready', version: info.version });
+    if (isNew) notifyUpdate();
   });
-  check();
-  setInterval(check, REFRESH_INTERVAL);
+  checkUpdate();
+  setInterval(checkUpdate, REFRESH_INTERVAL);
 }
 
 function installUpdate() {
@@ -286,6 +330,29 @@ function openHelp() {
   helpWindow.loadFile(path.join(__dirname, '..', 'renderer', 'help.html'));
 }
 
+function openUpdateInfo() {
+  if (updateWindow) {
+    updateWindow.show();
+    updateWindow.focus();
+    return;
+  }
+  updateWindow = new BrowserWindow({
+    width: 480,
+    height: 620,
+    minWidth: 400,
+    minHeight: 420,
+    title: '급식알리미 업데이트 정보',
+    icon: path.join(__dirname, '..', '..', 'assets', 'icon.png'),
+    autoHideMenuBar: true,
+    backgroundColor: '#fff8ea',
+    webPreferences,
+  });
+  updateWindow.removeMenu();
+  lockNavigation(updateWindow);
+  updateWindow.on('closed', () => { updateWindow = null; });
+  updateWindow.loadFile(path.join(__dirname, '..', 'renderer', 'update.html'));
+}
+
 function menuTemplate() {
   return [
     ...(update ? [{ label: '업데이트 설치하고 다시 시작', click: installUpdate }, { type: 'separator' }] : []),
@@ -293,6 +360,7 @@ function menuTemplate() {
     { label: '식단 새로고침', click: () => refreshMeals() },
     { label: '설정', click: openSettings },
     { label: '사용 설명서', click: openHelp },
+    { label: '업데이트 정보', click: openUpdateInfo },
     { type: 'separator' },
     { label: '종료', click: () => app.quit() },
   ];
@@ -391,6 +459,7 @@ function registerIpc() {
 
   ipcMain.on('settings:open', openSettings);
   ipcMain.on('help:open', openHelp);
+  ipcMain.on('update:check', checkUpdate);
   ipcMain.on('update:install', () => {
     if (update) installUpdate();
   });
@@ -431,12 +500,15 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.setAppUserModelId(APP_ID);
+  // 이미 켜져 있는데 또 실행되면(자동 실행과 아이콘 클릭이 겹칠 때 등) 위젯만 앞으로 꺼낸다.
+  // 학교를 아직 고르지 않았을 때만 설정 창을 연다.
   app.on('second-instance', () => {
     if (widget) {
       widget.showInactive();
       widget.moveTop();
+      widget.webContents.send('widget:hello');
     }
-    openSettings();
+    if (!store || !store.getSettings().school) openSettings();
   });
 
   app.whenReady().then(() => {

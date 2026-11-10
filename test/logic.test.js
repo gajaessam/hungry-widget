@@ -297,6 +297,7 @@ test('설정값을 검증한다', () => {
   assert.deepEqual(sanitize({ opacity: 0.1 }), { opacity: 0.4 });
   assert.deepEqual(sanitize({ scale: 3 }), { scale: 1.5 });
   assert.deepEqual(sanitize({ scale: 0.2 }), { scale: 0.7 });
+  assert.deepEqual(sanitize({ announcedUpdate: '0.2.7' }), { announcedUpdate: '0.2.7' });
   assert.deepEqual(sanitize({ tone: 'unknown' }), {});
   assert.deepEqual(sanitize({ allergies: [1, '2', 2, 99] }), { allergies: [1, 2] });
   assert.deepEqual(sanitize({ favorites: [' 치킨 ', '치킨', ''] }), { favorites: ['치킨'] });

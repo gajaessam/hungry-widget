@@ -1,7 +1,7 @@
 {
   "name": "geupsik-alimi",
   "productName": "급식알리미",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "내가 고른 캐릭터가 말풍선으로 오늘 급식을 알려주는 PC 위젯",
   "author": "급식알리미",
   "main": "src/main/main.js",
@@ -9,7 +9,7 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test \"test/*.test.js\"",
-    "icon": "node scripts/make-icon.mjs",
+    "icon": "electron scripts/make-icon.js",
     "dist": "electron-builder --win nsis",
     "share": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-share-zip.ps1"
   },

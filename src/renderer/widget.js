@@ -143,7 +143,7 @@ function renderNutrition(meal) {
 
 function renderUpdate() {
   const { update } = state;
-  $('update').hidden = !update || updateHidden;
+  $('update').hidden = !update || !update.announce || updateHidden;
   if (!update) return;
   $('updateTitle').textContent = `새 버전 v${update.version} 준비 완료`;
   $('updateNotes').textContent = update.notes;
@@ -153,7 +153,7 @@ function renderUpdate() {
 // 새 버전을 다 받았으면 캐릭터가 한 번 알려준다.
 function announceUpdate() {
   const { update } = state;
-  if (!update || update.version === announcedVersion) return;
+  if (!update || !update.announce || update.version === announcedVersion) return;
   announcedVersion = update.version;
   updateHidden = false;
   $('bubble').hidden = false;
@@ -345,6 +345,13 @@ async function init() {
   window.api.onCharactersChanged((next) => {
     images = next;
     render();
+  });
+  // 아이콘을 다시 눌렀을 때 "여기 있어" 하고 알려준다.
+  window.api.onHello(() => {
+    if (!state || !state.settings.school) return;
+    $('bubble').hidden = false;
+    wake();
+    say(pickLine(state.settings.tone, 'idle', Math.random()));
   });
 
   [state, images] = await Promise.all([window.api.getState(), window.api.getCharacters()]);
