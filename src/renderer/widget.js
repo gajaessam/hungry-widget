@@ -346,6 +346,10 @@ async function init() {
     images = next;
     render();
   });
+  // 인터넷이 다시 연결되면 식단을 못 받은 상태일 때 바로 새로고침한다.
+  window.addEventListener('online', () => {
+    if (state && state.error) window.api.refresh();
+  });
   // 아이콘을 다시 눌렀을 때 "여기 있어" 하고 알려준다.
   window.api.onHello(() => {
     if (!state || !state.settings.school) return;

@@ -1,7 +1,7 @@
 {
   "name": "geupsik-alimi",
   "productName": "급식알리미",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "내가 고른 캐릭터가 말풍선으로 오늘 급식을 알려주는 PC 위젯",
   "author": "급식알리미",
   "main": "src/main/main.js",

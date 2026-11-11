@@ -14,6 +14,7 @@ const FETCH_DAYS = 7;
 const SCHEDULE_DAYS = 14;
 const KEEP_PAST_DAYS = 7;
 const REFRESH_INTERVAL = 6 * 60 * 60 * 1000;
+const RETRY_DELAYS = [30, 60, 120, 300, 600, 1800].map((seconds) => seconds * 1000);
 const APP_ID = 'app.geupsikalimi.widget';
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MOODS = ['default', 'happy', 'sad', 'sleepy'];
@@ -75,6 +76,23 @@ async function refreshSchedule(client, school, isCurrentSchool) {
   }
 }
 
+// 식단을 못 받으면 점점 간격을 늘려 다시 시도한다. PC를 켠 직후 인터넷이 늦게 연결될 때를 위해서다.
+let retryTimer = null;
+let retryCount = 0;
+
+function scheduleRetry() {
+  clearTimeout(retryTimer);
+  const delay = RETRY_DELAYS[Math.min(retryCount, RETRY_DELAYS.length - 1)];
+  retryCount++;
+  retryTimer = setTimeout(() => refreshMeals(), delay);
+}
+
+function clearRetry() {
+  clearTimeout(retryTimer);
+  retryTimer = null;
+  retryCount = 0;
+}
+
 function refreshMeals() {
   const { school } = store.getSettings();
   if (!school) return Promise.resolve();
@@ -99,12 +117,16 @@ function refreshMeals() {
           updatedAt: Date.now(),
         });
         lastError = null;
+        clearRetry();
         broadcast('state:changed', currentState());
         await refreshSchedule(client, school, isCurrentSchool);
       }
     } catch (error) {
       console.error('식단 갱신 실패:', error);
-      if (isCurrentSchool()) lastError = error.message || '식단을 불러오지 못했어요.';
+      if (isCurrentSchool()) {
+        lastError = error.message || '식단을 불러오지 못했어요.';
+        scheduleRetry();
+      }
     } finally {
       refreshing = null;
       if (isCurrentSchool()) broadcast('state:changed', currentState());
