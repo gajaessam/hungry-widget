@@ -138,9 +138,22 @@ function bindFields(isPackaged) {
   $('tone').value = settings.tone;
   $('tone').addEventListener('change', () => save({ tone: $('tone').value }));
 
+  // 입력하는 동안 잠깐 멈추면 저장한다. 입력하자마자 창을 닫아도 내용이 남도록 하기 위해서다.
   for (const key of ['favorites', 'dislikes']) {
+    let timer = null;
+    const saveWords = () => {
+      clearTimeout(timer);
+      save({ [key]: splitWords($(key).value) });
+    };
     $(key).value = settings[key].join(', ');
-    $(key).addEventListener('change', () => save({ [key]: splitWords($(key).value) }));
+    $(key).addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(saveWords, 400);
+    });
+    $(key).addEventListener('change', saveWords);
+    window.addEventListener('beforeunload', () => {
+      if (timer) saveWords();
+    });
   }
 
   $('alwaysOnTop').checked = settings.alwaysOnTop;
